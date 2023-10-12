@@ -20,6 +20,10 @@
                 const x = document.getElementById("x").value
                 const y = document.getElementById("y").value
                 const color = document.getElementById("chosenColor").value
+                if(!x || !y || x<1 || x> 1000 || y<1 || y>700){
+                    console.log("wrong values !")
+                    return;
+                }
                 const res = {
                     "X" : x,
                     "Y" : y,
