@@ -6,6 +6,7 @@ use mysqli;
 
 class WebSock implements MessageComponentInterface {
     protected $clients;
+    private $conn;
 
     public function __construct() {
         $this->clients = new \SplObjectStorage;
@@ -29,36 +30,10 @@ class WebSock implements MessageComponentInterface {
                 $client->send($msg);
             }
         }
-        $data = json_decode($msg);
-        $x = $data->x;
-        $y = $data->y;
-        $color = $data->color;
-        $sqlCheck = "SELECT 1 FROM Canvas WHERE X='$x' AND Y='$y' LIMIT 1";
-
-        $servername = "localhost";
-        $username = "root";
-        $password = "";
-        $dbname = "pixelwar";
-    
-        $conn = new mysqli($servername,$username,$password,$dbname);
-        if($conn->connect_error){
-            echo "Connection error : ".$conn->connect_error;
+        $this->getConnection();
+        if($this->conn){
+            $this->savePixel($msg);
         }
-        else{
-            $res = $conn->query($sqlCheck);
-            if(!$res){
-                echo "An error occured. ".$sqlCheck;
-                return;
-            }
-            else if($res->num_rows == 0){
-                $sql = "INSERT INTO CANVAS (X,Y,Color) VALUES ($x,$y,'$color')";
-            }
-            else{
-                $sql = "UPDATE CANVAS SET Color = '$color' WHERE X=$x AND Y=$y";
-            }
-            $conn->query($sql);
-        }
-
     }
 
     public function onClose(ConnectionInterface $conn) {
@@ -72,5 +47,41 @@ class WebSock implements MessageComponentInterface {
         echo "An error has occurred: {$e->getMessage()}\n";
 
         $conn->close();
+    }
+
+    private function getConnection(){
+        if(!$this->conn){
+            $servername = "localhost";
+            $username = "root";
+            $password = "";
+            $dbname = "pixelwar";
+        
+            $this->conn = new mysqli($servername,$username,$password,$dbname);
+            if($this->conn->connect_error){
+                echo "Connection error : ".$this->conn->connect_error;
+                $this->conn = null;
+            }    
+        }
+    }
+
+    private function savePixel($msg){
+        $data = json_decode($msg);
+        $x = $data->x;
+        $y = $data->y;
+        $color = $data->color;
+        $sqlCheck = "SELECT 1 FROM Canvas WHERE X='$x' AND Y='$y' LIMIT 1";
+
+        $res = $this->conn->query($sqlCheck);
+        if(!$res){
+            echo "An error occured. ".$sqlCheck;
+            return;
+        }
+        else if($res->num_rows == 0){
+            $sql = "INSERT INTO CANVAS (X,Y,Color) VALUES ($x,$y,'$color')";
+        }
+        else{
+            $sql = "UPDATE CANVAS SET Color = '$color' WHERE X=$x AND Y=$y";
+        }
+        $this->conn->query($sql);
     }
 }
