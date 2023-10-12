@@ -1,0 +1,11 @@
+{
+    "name": "victo/pixel-war",
+    "require": {
+        "cboden/ratchet": "^0.4.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "PixelWar\\": "src/"
+        }
+    }
+}
