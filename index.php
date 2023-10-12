@@ -10,7 +10,10 @@
 
             conn.onmessage = function(e) {
                 console.log(e.data);
-                paintCanvas(JSON.parse(e.data))
+                data = JSON.parse(e.data);
+                if(Array.isArray(data))
+                    generatePainting(data)
+                else paintCanvas(data)
             }
 
             function sendNewPixel(){
@@ -18,9 +21,9 @@
                 const y = document.getElementById("y").value
                 const color = document.getElementById("chosenColor").value
                 const res = {
-                    "x" : x,
-                    "y" : y,
-                    "color" : color
+                    "X" : x,
+                    "Y" : y,
+                    "Color" : color
                 }
                 console.log(res)
                 conn.send(JSON.stringify(res));
@@ -30,9 +33,16 @@
             function paintCanvas(pixel){
                 const canvas = document.getElementById("res");
                 const context = canvas.getContext("2d")
-                console.log(pixel.x)
-                context.fillStyle = pixel.color || '#000';
-                context.fillRect(pixel.x,pixel.y,1,1)
+                console.log(pixel.X)
+                context.fillStyle = pixel.Color || '#000';
+                context.fillRect(pixel.X,pixel.Y,1,1)
+            }
+
+            function generatePainting(data){
+                data.forEach(pixel => {
+                    console.log(pixel)
+                    paintCanvas(pixel);
+                });
             }
         </script>
     </head>

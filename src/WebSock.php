@@ -17,6 +17,11 @@ class WebSock implements MessageComponentInterface {
         $this->clients->attach($conn);
 
         echo "New connection! ({$conn->resourceId})\n";
+
+        $this->getConnection();
+        if($this->conn){
+            $conn->send($this->getPixels());
+        }
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
@@ -66,9 +71,9 @@ class WebSock implements MessageComponentInterface {
 
     private function savePixel($msg){
         $data = json_decode($msg);
-        $x = $data->x;
-        $y = $data->y;
-        $color = $data->color;
+        $x = $data->X;
+        $y = $data->Y;
+        $color = $data->Color;
         $sqlCheck = "SELECT 1 FROM Canvas WHERE X='$x' AND Y='$y' LIMIT 1";
 
         $res = $this->conn->query($sqlCheck);
@@ -83,5 +88,17 @@ class WebSock implements MessageComponentInterface {
             $sql = "UPDATE CANVAS SET Color = '$color' WHERE X=$x AND Y=$y";
         }
         $this->conn->query($sql);
+    }
+
+    private function getPixels(){
+        $sqlGet = "SELECT X,Y,Color FROM Canvas";
+        $res = $this->conn->query($sqlGet);
+        if(!$res){
+            echo "An error occured.";
+            return null;
+        }
+        else{
+            return json_encode($res->fetch_all(MYSQLI_ASSOC));
+        }
     }
 }
